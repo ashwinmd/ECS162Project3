@@ -105,8 +105,6 @@ document.querySelector('#save').addEventListener('click', () => {
     console.log(xmlhttp.responseText);
     let id = xmlhttp.responseText;
     let displayPostcardURL = "https://plump-tinted-cub.glitch.me/display.html?id=" + id;
-    // immediately switch to display view
-    //window.location = "https://plump-tinted-cub.glitch.me/display.html";
     document.querySelector('#overlay').style.display = "flex";
     document.querySelector('#shareLinkWindow').style.display = "block";
     document.querySelector('#x-button').style.display = "block";

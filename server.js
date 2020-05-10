@@ -142,6 +142,53 @@ app.post('/saveDisplay', function (req, res) {
 });
 
 
+// function called when the button is pushed
+// handles the upload to the media storage API
+function sendMediaStore(filename, serverRequest, serverResponse) {
+  let apiKey = process.env.ECS162KEY;
+  if (apiKey === undefined) {
+    serverResponse.status(400);
+    serverResponse.send("No API key provided");
+  } else {
+    // we'll send the image from the server in a FormData object
+    let form = new FormData();
+    
+    // we can stick other stuff in there too, like the apiKey
+    form.append("apiKey", apiKey);
+    // stick the image into the formdata object
+    form.append("storeImage", fs.createReadStream(__dirname + filename));
+    // and send it off to this URL
+    form.submit("http://ecs162.org:3000/fileUploadToAPI", function(err, APIres) {
+      // did we get a response from the API server at all?
+      if (APIres) {
+        // OK we did
+        console.log("API response status", APIres.statusCode);
+        // the body arrives in chunks - how gruesome!
+        // this is the kind stream handling that the body-parser 
+        // module handles for us in Express.  
+        let body = "";
+        APIres.on("data", chunk => {
+          body += chunk;
+        });
+        APIres.on("end", () => {
+          // now we have the whole body
+          if (APIres.statusCode != 200) {
+            serverResponse.status(400); // bad request
+            serverResponse.send(" Media server says: " + body);
+          } else {
+            serverResponse.status(200);
+            serverResponse.send(body);
+          }
+        });
+      } else { // didn't get APIres at all
+        serverResponse.status(500); // internal server error
+        serverResponse.send("Media server seems to be down.");
+      }
+    });
+  }
+}
+
+
 
 
 // listen for requests :)
