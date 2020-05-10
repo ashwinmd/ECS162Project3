@@ -8,6 +8,18 @@ const multer = require('multer');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 
+//Generate random alphanumeric string of 22 characters
+//Source: stack overflow, https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
+function generatePostcardID() {
+   var postcardID           = '';
+   var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   var charactersLength = characters.length;
+   for ( var i = 0; i < 22; i++ ) {
+      postcardID += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return postcardID;
+}
+
 
 let storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -23,6 +35,38 @@ let upload = multer({storage: storage});
 
 // begin constructing the server pipeline
 const app = express();
+
+const sql = require("sqlite3").verbose();
+
+// This creates an interface to the file if it already exists, and makes the 
+// file if it does not. 
+const postcardDB = new sql.Database("postcards.db");
+
+// Actual table creation; only runs if "postcards.db" is not found or empty
+// Does the database table exist?
+let cmd = " SELECT name FROM sqlite_master WHERE type='table' AND name='PostcardTable' ";
+postcardDB.get(cmd, function (err, val) {
+    console.log(err, val);
+    if (val == undefined) {
+        console.log("No postcard database file - creating one");
+        createPostcardsDB();
+    } else {
+        console.log("Postcard Database file found");
+    }
+});
+
+function createPostcardsDB() {
+  // explicitly declaring the rowIdNum protects rowids from changing if the 
+  // table is compacted; not an issue here, but good practice
+  const cmd = 'CREATE TABLE PostcardTable ( rowIdNum TEXT PRIMARY KEY, image TEXT, color TEXT, font TEXT, message TEXT)';
+  postcardDB.run(cmd, function(err, val) {
+    if (err) {
+      console.log("Postcard Database creation failure",err.message);
+    } else {
+      console.log("Created postcard database");
+    }
+  });
+}
 
 
 
@@ -66,6 +110,25 @@ app.post('/saveDisplay', function (req, res) {
       res.send("All well")
     }
   })
+  
+  let rowIdNum = generatePostcardID();
+  let image= req.body.image;
+  let color = req.body.color;
+  let font = req.body.font;
+  let message = req.body.message;
+  console.log("image",image, "color", color, "font", font, "message", message);
+  
+  // put new item into database
+  cmd = "INSERT INTO PostcardTable ( rowIdNum, image, color, font, message) VALUES (?,?,?,?,?) ";
+  postcardDB.run(cmd, rowIdNum, image, color, font, message, function(err) {
+    if (err) {
+      console.log("DB insert error",err.message);
+      //next();
+    } else {
+      let newId = this.lastID; // the rowid of last inserted item
+      res.send("Got new item, inserted with rowID: "+ rowIdNum);
+    }
+  }); // callback, postcardDB.run
   
 });
 
