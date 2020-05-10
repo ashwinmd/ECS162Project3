@@ -1,3 +1,7 @@
-# ECS162Project3
+# Daily Postcard Solution
 
-Expanding the postcard app
+There are many ways to implement this app; this code shows one way, not
+necessarily the best, but certainly good.
+
+
+  
