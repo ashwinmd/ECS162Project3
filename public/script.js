@@ -15,7 +15,6 @@ document.querySelectorAll("#fonts input").forEach(i => {
     // because these are radio buttons, i.checked is true for 
     // the one selected
     if (i.checked) {
-      console.log("checked");
       // change diamonds
       // put the crossed diamond in front of this choice
       i.previousElementSibling.textContent = cross;
@@ -93,7 +92,6 @@ document.querySelector('#save').addEventListener('click', () => {
     font: msg.className,
     message: msg.innerText
   }
-  console.log(data);
   
   // new HttpRequest instance 
   var xmlhttp = new XMLHttpRequest();   
@@ -102,7 +100,6 @@ document.querySelector('#save').addEventListener('click', () => {
   xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
   // setup callback function
   xmlhttp.onloadend = function(e) {
-    console.log(xmlhttp.responseText);
     let id = xmlhttp.responseText;
     let displayPostcardURL = "https://plump-tinted-cub.glitch.me/display.html?id=" + id;
     document.querySelector('#overlay').style.display = "flex";
@@ -131,12 +128,12 @@ document.querySelector('#imgUpload').addEventListener('change', () => {
     xhr.open("POST", "/upload", true);
     xhr.onloadend = function(e) {
         // Get the server's response to the upload
-        console.log(xhr.responseText);
         let newImage = document.querySelector("#cardImg");
-        newImage.src = "https://plump-tinted-cub.glitch.me/images/"+selectedFile.name;
+        newImage.src = "http://ecs162.org:3000/images/amuralidharan/"+selectedFile.name;
         newImage.style.display = 'block';
         document.querySelector('.image').classList.remove('upload');
         button.textContent = 'Replace Image';
+        //fs.unlink("images/" + selectedFile.name);
     }
   
     button.textContent = 'Uploading...';
