@@ -78,6 +78,10 @@ colorBoxes.forEach((b, i) => {
   });
 });
 
+document.querySelector('#x-button').addEventListener('click', () => {
+  document.querySelector('#overlay').style.display = "none";
+})
+
 // UPLOAD postcard data
 // When the user hits the button...
 document.querySelector('#save').addEventListener('click', () => {
@@ -99,8 +103,15 @@ document.querySelector('#save').addEventListener('click', () => {
   // setup callback function
   xmlhttp.onloadend = function(e) {
     console.log(xmlhttp.responseText);
+    let id = xmlhttp.responseText;
+    let displayPostcardURL = "https://plump-tinted-cub.glitch.me/display.html?id=" + id;
     // immediately switch to display view
-    window.location = "https://postcard-app.glitch.me/display.html";
+    //window.location = "https://plump-tinted-cub.glitch.me/display.html";
+    document.querySelector('#overlay').style.display = "flex";
+    document.querySelector('#shareLinkWindow').style.display = "block";
+    document.querySelector('#x-button').style.display = "block";
+    document.querySelector('#displayLink').href = displayPostcardURL;
+    document.querySelector('#displayLink').textContent = displayPostcardURL;
   }
   // all set up!  Send off the HTTP request
   xmlhttp.send(JSON.stringify(data));
@@ -124,7 +135,7 @@ document.querySelector('#imgUpload').addEventListener('change', () => {
         // Get the server's response to the upload
         console.log(xhr.responseText);
         let newImage = document.querySelector("#cardImg");
-        newImage.src = "https://postcard-app.glitch.me/images/"+selectedFile.name;
+        newImage.src = "https://plump-tinted-cub.glitch.me/images/"+selectedFile.name;
         newImage.style.display = 'block';
         document.querySelector('.image').classList.remove('upload');
         button.textContent = 'Replace Image';

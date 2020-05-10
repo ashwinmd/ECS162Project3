@@ -23,7 +23,7 @@ function generatePostcardID() {
 
 let storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, __dirname+'/images')    
+    cb(null, __dirname + "/images");
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname)
@@ -82,16 +82,32 @@ app.get("/", function (request, response) {
   response.sendFile(__dirname + '/public/creator.html');
 });
 
+// Handle GET request to base URL with no other route specified
+// by sending creator.html, the main page of the app
+app.get("/showPostcard?", function (request, response) {
+  console.log(request.query.id);
+  let id  = request.query.id;
+ 
+  // put new item into database
+  cmd = "SELECT * FROM PostcardTable  WHERE rowIdNum = ?";
+  postcardDB.get(cmd, id, (err, val) => {
+    response.json(val);
+})
+  
+});
+
 // Next, the the two POST AJAX queries
 
 // Handle a post request to upload an image. 
 app.post('/upload', upload.single('newImage'), function (request, response) {
   console.log("Recieved",request.file.originalname,request.file.size,"bytes")
   if(request.file) {
+    console.log("Reached file store");
     // file is automatically stored in /images, 
     // even though we can't see it. 
     // We set this up when configuring multer
     response.end("recieved "+request.file.originalname);
+     
   }
   else throw 'error';
 });
@@ -103,15 +119,9 @@ app.use(bodyParser.json());
 app.post('/saveDisplay', function (req, res) {
   console.log(req.body);
   // write the JSON into postcardData.json
-  fs.writeFile(__dirname + '/public/postcardData.json', JSON.stringify(req.body), (err) => {
-    if(err) {
-      res.status(404).send('postcard not saved');
-    } else {
-      res.send("All well")
-    }
-  })
+
   
-  let rowIdNum = generatePostcardID();
+ let rowIdNum = generatePostcardID();
   let image= req.body.image;
   let color = req.body.color;
   let font = req.body.font;
@@ -123,18 +133,16 @@ app.post('/saveDisplay', function (req, res) {
   postcardDB.run(cmd, rowIdNum, image, color, font, message, function(err) {
     if (err) {
       console.log("DB insert error",err.message);
-      //next();
     } else {
       let newId = this.lastID; // the rowid of last inserted item
-      res.send("Got new item, inserted with rowID: "+ rowIdNum);
+      res.send(rowIdNum);
     }
   }); // callback, postcardDB.run
   
 });
 
 
-// The GET AJAX query is handled by the static server, since the 
-// file postcardData.json is stored in /public
+
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
